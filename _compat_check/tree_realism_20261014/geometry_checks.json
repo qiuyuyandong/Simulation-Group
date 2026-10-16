@@ -1,0 +1,52 @@
+{
+  "default": {
+    "digest": "f0a3ff36021fc54756c2aba4d737dd131f31b35f036992ba78ac2a4b3c021631",
+    "leaf_count": 5885,
+    "fruit_count": 37,
+    "leaf_angle_median": 17.783016767750464,
+    "leaf_angle_p90": 23.574878033580237,
+    "fruit_angle_max": 4.393112150919406,
+    "trunk_diameter_m": 0.15000000596046448,
+    "height_m": 2.926461696624756
+  },
+  "repeat": {
+    "digest": "f0a3ff36021fc54756c2aba4d737dd131f31b35f036992ba78ac2a4b3c021631",
+    "leaf_count": 5885,
+    "fruit_count": 37,
+    "leaf_angle_median": 17.783016767750464,
+    "leaf_angle_p90": 23.574878033580237,
+    "fruit_angle_max": 4.393112150919406,
+    "trunk_diameter_m": 0.15000000596046448,
+    "height_m": 2.926461696624756
+  },
+  "small": {
+    "digest": "a94f9d7d174f88408fb9d8a20b8cb68ce74016291acb4b4489b899eacc132570",
+    "leaf_count": 3965,
+    "fruit_count": 30,
+    "leaf_angle_median": 17.69627539176833,
+    "leaf_angle_p90": 23.58721364831598,
+    "fruit_angle_max": 4.306616486380881,
+    "trunk_diameter_m": 0.15000000596046448,
+    "height_m": 2.428201913833618
+  },
+  "large_orange": {
+    "digest": "afe1ae4db438d42b83137193df7b9165b8050de569a2ddcf7740d58cde82bedc",
+    "leaf_count": 12080,
+    "fruit_count": 28,
+    "leaf_angle_median": 18.127139826925422,
+    "leaf_angle_p90": 23.770032451576586,
+    "fruit_angle_max": 4.446908355840542,
+    "trunk_diameter_m": 0.14999999105930328,
+    "height_m": 4.44079065322876
+  },
+  "portable": {
+    "digest": "45cebb284e6747e87b89a3c9c919f86292ab4996d81a4736fef389c67c299a17",
+    "leaf_count": 1310,
+    "fruit_count": 21,
+    "leaf_angle_median": 18.54629745124945,
+    "leaf_angle_p90": 23.983735060943022,
+    "fruit_angle_max": 4.393112150919406,
+    "trunk_diameter_m": 0.15000000596046448,
+    "height_m": 2.8708512783050537
+  }
+}
