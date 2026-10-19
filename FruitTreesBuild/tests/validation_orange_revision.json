@@ -1,0 +1,190 @@
+{
+  "result": "passed",
+  "updated_at_utc": "2026-10-14T22:49:35.488817+08:00",
+  "scope": "orange tree visual proportions, real petiole contact and conservative leaf/fruit separation",
+  "unit_tests": {
+    "host": "Windows Python",
+    "passed": 68,
+    "failed": 0
+  },
+  "orange_seeds": {
+    "101": {
+      "result": "passed",
+      "model_sha256": "e9c5218a2cf3d79037ecd21db05570b30552561fb06189d85df693aaba168b64",
+      "leaf_connections": {
+        "checked_leaves": 1600,
+        "maximum_petiole_base_surface_distance_m": 0.0004981936071999371,
+        "surface_distance_tolerance_m": 0.0015,
+        "scope": "actual petiole base and petiole-to-wood contact; not all mesh intersections"
+      },
+      "fruit_connections": {
+        "checked_fruits": 80,
+        "maximum_endpoint_error_m": 1.1920928955078125E-07,
+        "maximum_branch_surface_error_m": 4.563655693345936E-06,
+        "minimum_fruit_up_dot_world_z": 0.9864245653152466
+      },
+      "leaf_fruit_clearance": {
+        "checked_leaves": 1600,
+        "checked_fruits": 80,
+        "clearance_m": 0.006,
+        "conflicting_leaves": 0,
+        "method": "complete leaf triangles vs actual-fruit enclosing spheres, expanded by clearance",
+        "scope": "conservative geometry separation, not camera-view visibility; no physics objects created"
+      },
+      "minimum_leaf_base_spacing_m": 0.034732937812805176,
+      "detached_leaf_rejected": true,
+      "crossing_triangle_with_exterior_corners_rejected": true,
+      "rigid_placement_preserves_connections_clearance_and_local_fruits": true,
+      "leaf_materials_opaque_and_uvs_preserved": true,
+      "no_collision_proxies": true,
+      "saved_asset_unmodified": true,
+      "visual_bounds_local": {
+        "min": [
+          -1.7288594245910645,
+          -1.389163613319397,
+          0.0
+        ],
+        "max": [
+          1.498069167137146,
+          1.6236608028411865,
+          3.239671468734741
+        ]
+      },
+      "wood_vertices": 34168,
+      "wood_faces": 30364,
+      "scope": "visual geometry; not full blade/blade or wood self-intersection certification"
+    },
+    "104": {
+      "result": "passed",
+      "model_sha256": "9bfd820754db3fd9c89f08f19d57c044b107a2fe6aa66cfa34cf30b7ed788ac4",
+      "leaf_connections": {
+        "checked_leaves": 1600,
+        "maximum_petiole_base_surface_distance_m": 0.0004985642153769732,
+        "surface_distance_tolerance_m": 0.0015,
+        "scope": "actual petiole base and petiole-to-wood contact; not all mesh intersections"
+      },
+      "fruit_connections": {
+        "checked_fruits": 80,
+        "maximum_endpoint_error_m": 2.384185791015625E-07,
+        "maximum_branch_surface_error_m": 5.733520538342418E-06,
+        "minimum_fruit_up_dot_world_z": 0.98719722032547
+      },
+      "leaf_fruit_clearance": {
+        "checked_leaves": 1600,
+        "checked_fruits": 80,
+        "clearance_m": 0.006,
+        "conflicting_leaves": 0,
+        "method": "complete leaf triangles vs actual-fruit enclosing spheres, expanded by clearance",
+        "scope": "conservative geometry separation, not camera-view visibility; no physics objects created"
+      },
+      "minimum_leaf_base_spacing_m": 0.034677743911743164,
+      "detached_leaf_rejected": true,
+      "crossing_triangle_with_exterior_corners_rejected": true,
+      "rigid_placement_preserves_connections_clearance_and_local_fruits": true,
+      "leaf_materials_opaque_and_uvs_preserved": true,
+      "no_collision_proxies": true,
+      "saved_asset_unmodified": true,
+      "visual_bounds_local": {
+        "min": [
+          -1.5980719327926636,
+          -1.5077452659606934,
+          0.0
+        ],
+        "max": [
+          1.6196616888046265,
+          1.688944697380066,
+          3.233279228210449
+        ]
+      },
+      "wood_vertices": 34168,
+      "wood_faces": 30364,
+      "scope": "visual geometry; not full blade/blade or wood self-intersection certification"
+    },
+    "105": {
+      "result": "passed",
+      "model_sha256": "56b5a93e31e45393a4f2af27d74e69a2b1d7ac922b05bcef44f454430dcb853d",
+      "leaf_connections": {
+        "checked_leaves": 1600,
+        "maximum_petiole_base_surface_distance_m": 0.0004987401189282537,
+        "surface_distance_tolerance_m": 0.0015,
+        "scope": "actual petiole base and petiole-to-wood contact; not all mesh intersections"
+      },
+      "fruit_connections": {
+        "checked_fruits": 80,
+        "maximum_endpoint_error_m": 1.1920928955078125E-07,
+        "maximum_branch_surface_error_m": 2.2286080820776988E-06,
+        "minimum_fruit_up_dot_world_z": 0.9888190627098083
+      },
+      "leaf_fruit_clearance": {
+        "checked_leaves": 1600,
+        "checked_fruits": 80,
+        "clearance_m": 0.006,
+        "conflicting_leaves": 0,
+        "method": "complete leaf triangles vs actual-fruit enclosing spheres, expanded by clearance",
+        "scope": "conservative geometry separation, not camera-view visibility; no physics objects created"
+      },
+      "minimum_leaf_base_spacing_m": 0.03468983620405197,
+      "detached_leaf_rejected": true,
+      "crossing_triangle_with_exterior_corners_rejected": true,
+      "rigid_placement_preserves_connections_clearance_and_local_fruits": true,
+      "leaf_materials_opaque_and_uvs_preserved": true,
+      "no_collision_proxies": true,
+      "saved_asset_unmodified": true,
+      "visual_bounds_local": {
+        "min": [
+          -1.6178252696990967,
+          -1.6660776138305664,
+          0.0
+        ],
+        "max": [
+          1.5263656377792358,
+          1.5955809354782104,
+          3.2070467472076416
+        ]
+      },
+      "wood_vertices": 34168,
+      "wood_faces": 30364,
+      "scope": "visual geometry; not full blade/blade or wood self-intersection certification"
+    }
+  },
+  "apple_regression": {
+    "compared_objects": 3082,
+    "geometry_and_transforms_identical": true,
+    "basis": "all saved object matrices, vertices, edges/faces, Skin radii and fruit IDs"
+  },
+  "metadata_export": {
+    "schema_version": "3.0.0",
+    "review_status": "automated_test_only",
+    "model_sha256": "e9c5218a2cf3d79037ecd21db05570b30552561fb06189d85df693aaba168b64",
+    "saved_model_unchanged": true,
+    "saved_reload_validation": "passed",
+    "rigid_placement_and_duplicate_id_checks": "passed"
+  },
+  "visual_qa": {
+    "Cycles_full_tree_and_detail": "inspected",
+    "EEVEE_full_tree": "inspected"
+  },
+  "limitations": [
+    "Not a measured cultivar-specific model.",
+    "Normal line-of-sight occlusion is retained.",
+    "Not full leaf/leaf or wood self-intersection certification.",
+    "No collision proxies or physics validation.",
+    "These are automated tests, not a declaration that the user reviewed the asset."
+  ],
+  "deployed_project": {
+    "model_sha256": "1885660228d16673029f879f4e513ab93ad8db9dfacea0d41b1b5e94fe0b1827",
+    "asset_stage": "awaiting_manual_review",
+    "asset_metadata_generated": false,
+    "recovery_archive": "D:\\IAMPS2019-FruitTrees\\FruitTreesBuild_Archive\\orange_revision_20261014T145111Z",
+    "asset_directory": "D:\\IAMPS2019-FruitTrees\\FruitTreesBuild\\generated\\orange_tree_002",
+    "path": "D:\\IAMPS2019-FruitTrees\\FruitTreesBuild",
+    "saved_reload_validation": "passed",
+    "preexisting_files_unchanged": 23,
+    "unit_tests_passed": 68,
+    "preview_files": [
+      "preview.png",
+      "preview_detail.png"
+    ],
+    "source_hashes_verified": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "assetDir": "generated/orange_tree_001",
+  "blenderPath": ".runtime/blender-5.2-windows64/blender.exe",
+  "threads": 4,
+  "reviewer": null,
+  "reviewNote": "",
+  "reviewMode": "declared",
+  "checkAttachments": false,
+  "verifyOnly": false,
+  "dryRun": false
+}
