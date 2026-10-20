@@ -1,0 +1,23 @@
+{
+  "generator": "sapling",
+  "fruit": "orange",
+  "maturityStage": "unknown",
+  "seed": 101,
+  "frames": 0,
+  "backend": "modern",
+  "blenderPath": ".runtime/blender-5.2-windows64/blender.exe",
+  "resolution": 512,
+  "samples": 32,
+  "threads": 4,
+  "profile": "orchard",
+  "treeHeight": 3.2,
+  "trunkHeight": 0.5,
+  "crownWidth": 3.2,
+  "trunkDiameter": 0.13,
+  "leafCount": 1600,
+  "fruitCount": 80,
+  "leafLength": 0.105,
+  "leafFruitClearance": 0.006,
+  "fruitDiameter": 0.08,
+  "noGround": true
+}
