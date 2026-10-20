@@ -1,0 +1,11 @@
+﻿generated/
+.idea/
+.venv/
+__pycache__/
+*.pyc
+*.blend1
+.runtime/
+previews/
+_numbering_test_*/
+_config_test_*/
+_metadata_test_*/

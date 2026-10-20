@@ -1,0 +1,13 @@
+{
+  "objects": [
+    "green_leaves_PNG3638",
+    "green_leaves_PNG3668",
+    "Apple",
+    "Orange"
+  ],
+  "sha256": "bb129aae4b79d144f0e98e77105c78fac8237b2b94552e24d95505baffc55f7a",
+  "schema_version": "1.0.0",
+  "third_party_asset_licenses": "not_reviewed",
+  "source_scene": "D:\\IAMPS2019-FruitTrees\\generated\\space_apple_seed101_20261013_100937_c40e09\\scene.blend",
+  "purpose": "Original IAMPS UVs and shader graphs, not a generated tree or a runtime dependency on the source scene."
+}
