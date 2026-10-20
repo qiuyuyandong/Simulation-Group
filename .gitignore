@@ -1,0 +1,65 @@
+# 操作系统文件
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Python 缓存、虚拟环境和测试缓存
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# 个人 IDE 状态
+# 共享的 .run/ 和 .vscode/ 配置继续保留
+.idea/
+.vs/
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# 本机环境变量；保留配置示例
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Blender 自动备份；保留正式 .blend 模型
+*.blend[0-9]*
+
+# 新工程的本地运行环境
+/FruitTreesBuild/.runtime/
+
+# 新工程的生成素材与预览
+/FruitTreesBuild/generated/
+/FruitTreesBuild/previews/
+
+# 测试产生的临时目录
+/FruitTreesBuild/_numbering_test_*/
+/FruitTreesBuild/_config_test_*/
+/FruitTreesBuild/_metadata_test_*/
+
+# 根目录历史备份与兼容性检查产物
+/_backup/
+/_compat_check/
+
+# 旧框架的渲染输出
+/IAMPS2019-Procedural-Fruit-Tree-Rendering-Framework-master/output/
+
+# 本地运行日志
+*.log
+
+# 以下内容不要整体忽略：
+# *.blend、*.obj、*.mtl、图片、*.hdr、*.zip
+# assets/、vendor/、configs/、docs/、tests/
+# 它们可能是运行依赖、源模型或必要资料
