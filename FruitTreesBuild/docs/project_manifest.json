@@ -29,7 +29,7 @@
     "repository": "https://github.com/varkenvarken/spacetree",
     "commit": "3a329e3483f26143b1544d4a8323137f2f74e8c0"
   },
-  "updated_at_utc": "2026-10-23T04:09:31Z",
+  "updated_at_utc": "2026-10-23T04:11:05Z",
   "sapling_source": {
     "algorithm_source": "https://github.com/blender/blender-addons/tree/main/add_curve_sapling",
     "source_license": "GPL-2.0-or-later (SPDX header)",
@@ -87,7 +87,7 @@
     "scripts/apple_branching.py": "cc167564748a36ac7e63cac921b37f2f6d49282b11ee7410d350e91ece2e82f2",
     "scripts/apple_crown.py": "1bcf3f267449da85049c4f6f9d2cce3b0dfd3c08fb504c4973b2e13710a3ff4e",
     "scripts/apple_wood.py": "9cd42e790aba1560035fd055790e85b53a836f0293611767c1f72a501c4ecc51",
-    "scripts/run_apple_seeds.py": "7e6f1ca96a3029df139926b2ff8fa0beaa6a9ffec2238af4c8d4cef095651a9a"
+    "scripts/run_apple_seeds.py": "84ab343614e47052c35412480ebe6bfe9aefdc177f4f702fd11b0795d012abc3"
   },
   "protected_resource_sha256": {
     "vendor/iamps/sapling_tree_scene_gen.py": "6019ccd46042ff3ccbc6e2ae11376a69e5e7b7454c662f49aab72e36db85eedf",

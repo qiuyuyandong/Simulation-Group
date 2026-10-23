@@ -26,7 +26,7 @@ DEFAULT_CONFIG = ROOT / 'configs' / 'apple_tree.json'
 GENERATE_SCRIPT = ROOT / 'generate_apple_tree.py'
 
 # Change this constant to set how many successful assets one run should collect.
-TARGET_SUCCESSES = 1
+TARGET_SUCCESSES = 3
 # Safety cap so an unlucky seed range cannot run forever. Set to 0 for no cap.
 MAX_ATTEMPTS = 200
 
