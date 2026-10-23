@@ -263,6 +263,13 @@ def build_wood_paths(points, parent, radii, crown_offset, root):
 def build_apple_wood(points, parent, radii, crown_offset, root, args):
     trunk_points, trunk_radii, paths = build_wood_paths(points, parent, radii,
                                                        crown_offset, root)
+    if len(trunk_points) > 1:
+        tangent = trunk_points[-1] - trunk_points[-2]
+        if tangent.length > 1e-8:
+            tangent.normalize()
+            tip_length = min(0.03, max(0.008, trunk_radii[-1] * 4.0))
+            trunk_points.append(trunk_points[-1] + tangent * tip_length)
+            trunk_radii.append(max(0.0004, trunk_radii[-1] * 0.15))
     path_lookup = {0: (trunk_points, trunk_radii)}
     for path in paths:
         path_lookup[path['index']] = (path['points'], path['radii'])
@@ -279,14 +286,27 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
         if direction.length < 1e-7:
             direction = (path['points'][1] - path['points'][0]) if len(path['points']) > 1 else Vector((0.0, 0.0, 1.0))
         direction.normalize()
-        embed = min(0.0015, parent_radius * 0.15)
-        surface = parent_point + direction * max(parent_radius - embed, parent_radius * 0.5)
-        base_radius = max(path['radii'][0] * 1.22, 0.0015)
-        path['surface'] = surface
-        path['surface_radius'] = base_radius
+        branch_radius = path['radii'][0]
+        # Two base rings: a small cap fully inside the parent (hidden), then a
+        # flared ring just outside the parent surface. This removes the visible
+        # flat start cap that looked like a floating branch on thin parents.
+        inside_distance = max(0.0, parent_radius - max(0.0015, branch_radius * 1.5))
+        inside = parent_point + direction * inside_distance
+        inside_radius = min(max(0.0008, parent_radius * 0.55), branch_radius * 0.8)
+        outside = parent_point + direction * (parent_radius + 0.0008)
+        flare_radius = max(branch_radius * 1.22, 0.0015)
+        path['surface'] = outside
+        path['surface_radius'] = flare_radius
         path['parent_surface_distance'] = distance
-        path['points'] = [surface] + path['points']
-        path['radii'] = [base_radius] + path['radii']
+        path['points'] = [inside, outside] + path['points']
+        path['radii'] = [inside_radius, flare_radius] + path['radii']
+        # Taper the distal end to a point instead of a flat circular cap.
+        tangent = path['points'][-1] - path['points'][-2]
+        if tangent.length > 1e-8:
+            tangent.normalize()
+            tip_length = min(0.025, max(0.006, path['radii'][-1] * 4.0))
+            path['points'].append(path['points'][-1] + tangent * tip_length)
+            path['radii'].append(max(0.0004, path['radii'][-1] * 0.15))
         path_lookup[path['index']] = (path['points'], path['radii'])
 
     # Capsule checks: skip the first segment (intended surface embedding).
@@ -300,9 +320,9 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
         for path in paths:
             old_points = path['points']
             old_radii = path['radii']
-            new_points = [old_points[0]]
-            new_radii = [old_radii[0]]
-            for index in range(1, len(old_points) - 1):
+            new_points = [old_points[0], old_points[1], old_points[2]]
+            new_radii = [old_radii[0], old_radii[1], old_radii[2]]
+            for index in range(2, len(old_points) - 1):
                 first, second = old_points[index], old_points[index + 1]
                 first_radius, second_radius = old_radii[index], old_radii[index + 1]
                 worst = None
@@ -334,10 +354,29 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
             path['radii'] = new_radii
         if not changed:
             break
+    for path in paths:
+        path_lookup[path['index']] = (path['points'], path['radii'])
+    # Final guard: after trunk-clearance repair, every branch's outside ring
+    # must still sit on its (possibly moved) parent surface.
+    base_errors = []
+    base_error_max = 0.0
+    for path in paths:
+        parent_points, parent_radii = path_lookup[path['parent_path']]
+        outside = path['points'][1]
+        distance, closest, parent_radius = _closest_on_polyline(outside, parent_points, parent_radii)
+        error = distance - parent_radius
+        base_error_max = max(base_error_max, abs(error))
+        if abs(error) > 0.002:
+            base_errors.append({'branch': path['index'], 'parent_path': path['parent_path'],
+                                'error_m': round(error, 6),
+                                'outside': [round(value, 4) for value in outside],
+                                'parent_radius': round(parent_radius, 4)})
+    if base_errors:
+        raise RuntimeError('Branch base detached after wood repair: {}'.format(base_errors[:10]))
     trunk_hits = []
     for path in paths:
         cumulative = 0.0
-        for index in range(1, len(path['points']) - 1):
+        for index in range(2, len(path['points']) - 1):
             first, second = path['points'][index], path['points'][index + 1]
             cumulative += (second - first).length
             if cumulative < max(0.012, path['surface_radius'] * 2.0):
@@ -375,8 +414,14 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
     faces.extend(tuple(index + offset for index in face) for face in trunk_faces)
     smooth.extend(trunk_smooth)
     mesh_trunk_hits = []
+    branch_tube_count = 0
+    empty_branch_tubes = 0
     for path in paths:
         path_verts, path_faces, path_smooth = _sweep_path(path['points'], path['radii'], 8)
+        if path_verts:
+            branch_tube_count += 1
+        else:
+            empty_branch_tubes += 1
         # Exclude the first two rings (intentional surface embedding) from the
         # exact triangle overlap check.
         test_faces = [face for face in path_faces if min(face) >= 16]
@@ -421,9 +466,9 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
     segment_id = 0
     for path_number, (path_points, path_radii) in enumerate(
             [(trunk_points, trunk_radii)] + [(path['points'], path['radii']) for path in paths]):
-        # The first branch segment is the intentional surface embed/collar;
-        # leaves and fruits should sample the visible branch beyond it.
-        start = 0 if path_number == 0 else 1
+        # The first two branch segments are inside/at the parent surface and
+        # the flared collar; leaves and fruits sample beyond them.
+        start = 0 if path_number == 0 else 2
         for index in range(start, len(path_points) - 1):
             first, second = path_points[index], path_points[index + 1]
             if (second - first).length < 1e-6:
@@ -437,6 +482,8 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
         'trunk_centerline_vertex_count': len(trunk_points),
         'trunk_tube_sides': 16,
         'branch_path_count': len(paths),
+        'branch_tube_count': branch_tube_count,
+        'empty_branch_tube_count': empty_branch_tubes,
         'branch_tube_sides': 8,
         'branch_base_flare_count': len(paths),
         'branch_trunk_intersection_count': len(trunk_hits),
@@ -445,6 +492,8 @@ def build_apple_wood(points, parent, radii, crown_offset, root, args):
         'branch_base_embed_m': 0.0015,
         'branch_trunk_repair_count': repaired,
         'branch_trunk_max_repair_shift_m': round(maximum_shift, 6),
+        'branch_base_error_count': len(base_errors),
+        'branch_base_max_error_m': round(base_error_max, 6),
         'branch_trunk_intersection_samples': trunk_hits[:20],
         'branch_trunk_mesh_intersection_samples': mesh_trunk_hits[:20],
         'branch_branch_intersection_samples': branch_hits[:20],

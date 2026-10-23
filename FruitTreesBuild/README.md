@@ -25,9 +25,11 @@ branchAngleMin 以“子枝与母枝反向延长线的夹角（开张角）”�
 苹果叶片现在按实际枝干表面放置，并做叶片-枝干、叶片-叶片、叶片-果实、果实-枝干和果实-果实检查；
 检测使用保守几何代理，不是完整三角面相交证明。3000 片叶在默认配置下可行，过密时会明确报错而不是静默丢弃。
 苹果木质部改为“一条连续树干管 + 分枝管 + 喇叭形枝领”，不再用 Skin 按分枝切开树干；
-生成时先做枝-干胶囊检查，再用三角化 BVH 检查枝管与树干的真实面重叠，超差会推动枝段让开或直接报错。
+分枝基部使用双环：内环小帽藏在父枝内部，外环落在父枝表面形成枝领；枝梢追加锥形收尖点，避免平口悬浮。
+生成时先做枝-干胶囊检查，再用三角化 BVH 检查枝管与树干的真实面重叠，超差会推动枝段让开或直接报错；
+同时校验每条分枝的外环确实落在父枝表面上，防止父枝修复后子树留在原处。
 `metadata.json` 的 `structure.branch_trunk_intersection_count` 和
-`structure.branch_trunk_mesh_intersection_count` 应为 0。
+`structure.branch_trunk_mesh_intersection_count` 应为 0；`branch_base_error_count` 也应为 0。
 橙子仍使用 Sapling 算法，但采用低分叉、较舒展的柑橘树形预设，固定三级分枝；seed 仍会改变具体枝条形状。
 想生成不同树形要修改 seed；只换文件夹编号不会改变树形。
 
@@ -40,6 +42,20 @@ leafFruitClearance 默认 0.006 m，对实际果实几何的保守包络增加�
 运行对应脚本后，查看控制台输出目录：generated/apple_tree_001、apple_tree_002……；橙子独立按 orange_tree_001 递增。
 不会覆盖旧目录，也不回填失败的编号。不要删除 generated/.asset-numbering.json。
 此步骤生成可编辑的 asset.blend，不生成素材级 asset_metadata.json。
+
+### 连续尝试种子
+
+```powershell
+python scripts/run_apple_seeds.py
+python scripts/run_apple_seeds.py --successes 5
+```
+
+脚本顶部常量 `TARGET_SUCCESSES` 默认是 3：每次运行会不断把 `seed` 加 1 并尝试，
+直到成功收集到 n 个带 `asset.blend` 的素材。成功时保留对应 `generated/apple_tree_NNN`；
+失败时只删除**没有 asset.blend** 的占位目录，保留日志。
+`--successes n` 可临时覆盖常量，`--max-attempts` 是防死循环上限（默认 200，0 为不限），
+`--dry-run` 只显示下一个种子和命令。
+失败或成功都会消耗编号，编号不会被重置或复用；不要并行运行多个实例。
 
 ### 2. 人工检查并保存
 
