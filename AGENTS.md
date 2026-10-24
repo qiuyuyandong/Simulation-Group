@@ -1,13 +1,10 @@
 ## 仿真小组
 
-### 路径约定
+### 工作结果汇报
+设计功能调整或功能开发时，主要以：代码位置+功能的方式呈现。（如：代码主要修改 [fruit_maturity.py (line 18)](/D:/Cowork/Simulation_Group/FruitTreesBuild/scripts/fruit_maturity.py:18)：增加饱和度、亮度控制，并将半熟的整体变色改为柔和的局部混色；metadata 字段无需改变。）改动较多时可以使用表格进行呈现
 
-- 主工作区
-	D:\Cowork\Simulation_Group（本文件夹）是项目参考代码、本地仿真小组建模的工作区
-- 资料区
-	D:\华为云盘\_WorkSpace_\Project\Simulation_Group 是项目组的资料储藏地址，相关论文文献、产出文档、一些代码压缩包（已经解压到D:\Cowork\Simulation_Group中）
-- Blender配置文件区
-	D:\Blender
+### Git提交与推送约定
+git提交与推送都使用中文，不要长篇大论，主要说明改了什么功能，对应哪些代码
 
 ### 对话要求
 不要长篇大论。不要太过自主地帮我操作，以辅助协同为主，我来干主要的活，你负责帮我解释和解决问题。

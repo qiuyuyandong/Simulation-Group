@@ -37,6 +37,18 @@ for obj in fruits:
     assert abs(material.node_tree.nodes['Apple_Maturity'].inputs['Hue'].default_value - hue) < 1e-6
     assert 'Normal Map' in material.node_tree.nodes
     assert material.pass_index == 3
+    tint = material.node_tree.nodes['Apple_Maturity']
+    assert 0 < tint.inputs['Saturation'].default_value < 1
+    assert 0 < tint.inputs['Value'].default_value < 1
+    if stage == 'turning':
+        blush = material.node_tree.nodes['Apple_Blush']
+        assert all(socket.is_linked for socket in blush.inputs)
+        diffuse = next(node for node in material.node_tree.nodes if node.type == 'BSDF_DIFFUSE')
+        assert diffuse.inputs['Color'].links[0].from_node == blush
+        mask = blush.inputs[0].links[0].from_node
+        variation = mask.inputs['Fac'].links[0].from_node
+        assert variation.operation == 'MULTIPLY_ADD'
+        assert variation.inputs[2].links[0].from_node.type == 'SEPXYZ'
     materials.setdefault(stage, set()).add(material.as_pointer())
     assert all('Apple_Maturity' not in source.node_tree.nodes for source in obj.data.materials)
 assert len({next(iter(value)) for value in materials.values()}) == 3

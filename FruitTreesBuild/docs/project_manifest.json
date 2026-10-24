@@ -29,7 +29,7 @@
     "repository": "https://github.com/varkenvarken/spacetree",
     "commit": "3a329e3483f26143b1544d4a8323137f2f74e8c0"
   },
-  "updated_at_utc": "2026-10-24T06:25:08Z",
+  "updated_at_utc": "2026-10-24T13:41:20Z",
   "sapling_source": {
     "algorithm_source": "https://github.com/blender/blender-addons/tree/main/add_curve_sapling",
     "source_license": "GPL-2.0-or-later (SPDX header)",
@@ -70,7 +70,7 @@
     "scripts/launcher_config.py": "531da3445fe9b327b8c6fd97207528297501fe374b1e3f4c7da5405792414b50",
     "LICENSE": "dc96836215dcadd624f5e4e74e66b5ea770f06fc029e6682d580173e535fe165",
     "scripts/asset_export.py": "5f7ff5710e48521b35760039eb8f1cead6bdffc3b076f1718d1256a421d2afc4",
-    "README.md": "367baafeff5b6d308282c9aa2930b583c1dd30cfce7cfb3f8fca5a62a9ad83c9",
+    "README.md": "7af0f05ae5eb435bdc3a6b2e1c1ec1621fafb5cc3e619bfd784843a99978004d",
     "scripts/sapling_scene.py": "66f553acf4dd7b74ee1a97eddfe31a33da61b307b40ebbea2ec9400b209aad2f",
     "configs/orange_tree.json": "b8c8f8521e1e3882aa37c91b13613897388cd3029581da9971103134db1d551a",
     "scripts/attachment_diagnostics.py": "d81384729393443b74d854956dea020796aa3fb658ee9e5460b277a581ca9565",
@@ -88,9 +88,9 @@
     "scripts/apple_crown.py": "1bcf3f267449da85049c4f6f9d2cce3b0dfd3c08fb504c4973b2e13710a3ff4e",
     "scripts/apple_wood.py": "9cd42e790aba1560035fd055790e85b53a836f0293611767c1f72a501c4ecc51",
     "scripts/run_apple_seeds.py": "84ab343614e47052c35412480ebe6bfe9aefdc177f4f702fd11b0795d012abc3",
-    "scripts/fruit_maturity.py": "c539589d420c4715710dc154c4e59c921655fa6f167684acbb72161f47a0e1dd",
+    "scripts/fruit_maturity.py": "9bcab571c61d81f7f974adb8ee26c4e4af088770327cd2c66719bdca06c9133f",
     "tests/test_fruit_maturity.py": "1882b6d6591bfbd7b158ad9ddf4e9737b232d698963e3d170d31f92d07d79111",
-    "tests/apple_maturity_blender_checks.py": "a02b7ba3e195bb7ded427a4f5047add06a6f876487cbc717fe41f1fa45db673c",
+    "tests/apple_maturity_blender_checks.py": "788ffcf6be99a57da4ad91dcfdc39744a308522e00127be6b8f925a28e594de0",
     "tests/test_blender_discovery.py": "99475801d76ff7c97ac2191dbd4df3cd902d84782fc8a40f6138d487a267c535"
   },
   "protected_resource_sha256": {
