@@ -2,6 +2,7 @@
   "generator": "auto",
   "fruit": "apple",
   "maturityStage": "unknown",
+  "maturityCounts": {"unripe": 20, "turning": 20, "ripe": 40},
   "fruitVariantId": null,
   "seed": 101,
   "frames": 0,

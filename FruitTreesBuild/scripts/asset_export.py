@@ -65,10 +65,10 @@ def export_asset(args, output, source_name, structure):
                    'trunk_diameter', 'crown_width', 'leaf_fruit_clearance',
                    'branch_uplift', 'branch_angle_min', 'height_taper', 'leaf_spacing',
                    'leaf_count', 'fruit_count', 'leaf_length', 'fruit_diameter',
-                   'maturity_stage', 'fruit_variant_id')}
+                   'maturity_stage', 'maturity_counts', 'fruit_variant_id')}
     sources = ['scripts/orchard_shape.py', 'scripts/apple_branching.py', 'scripts/apple_wood.py',
                'scripts/apple_crown.py', 'scripts/asset_export.py', 'scripts/fruit_attachment.py',
-               'assets/fruit_attachment_profiles.json', 'assets/source_prototypes.blend']
+               'scripts/fruit_maturity.py', 'assets/fruit_attachment_profiles.json', 'assets/source_prototypes.blend']
     if args.generator == 'space':
         sources += ['vendor/spacetree/src/add_mesh_space_tree/scanew.py', 'scripts/modern_scene.py']
     else:
@@ -84,8 +84,12 @@ def export_asset(args, output, source_name, structure):
     for obj in objects:
         if obj.get('asset_role') == 'fruit':
             obj['fruit_id'] = obj['instance_id']
-            obj['maturity_stage'] = args.maturity_stage
-            obj['fruit_variant_id'] = args.fruit_variant_id
+            if 'maturity_stage' not in obj:
+                obj['maturity_stage'] = args.maturity_stage
+            if 'fruit_variant_id' not in obj:
+                obj['fruit_variant_id'] = args.fruit_variant_id
+            if obj['maturity_stage'] not in MATURITY_STAGES or not obj['fruit_variant_id'].strip():
+                raise ValueError('Invalid fruit maturity/variant: ' + obj.name)
     record = {
         'category': args.fruit + '_tree',
         'biological_info': {'crop_label': args.fruit, 'species': None, 'cultivar': None,

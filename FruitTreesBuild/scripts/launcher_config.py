@@ -46,7 +46,24 @@ BUILD_DIMENSIONS = {'treeHeight': (.5, 20), 'trunkHeight': (.1, 10), 'trunkDiame
                     'leafFruitClearance': (0, .05), 'branchUplift': (0, 1),
                     'branchAngleMin': (90, 180), 'leafSpacing': (0, .1),
                     'heightTaper': (0, .8)}
-BUILD_FIELDS = set(BUILD_CHOICES) | set(BUILD_INTEGERS) | set(BUILD_DIMENSIONS) | {'blenderPath', 'fruitVariantId', 'noGround'}
+BUILD_FIELDS = set(BUILD_CHOICES) | set(BUILD_INTEGERS) | set(BUILD_DIMENSIONS) | {'blenderPath', 'fruitVariantId', 'noGround', 'maturityCounts'}
+
+
+def validate_maturity_counts(counts, fruit_count, fruit, variant):
+    if counts is None:
+        return
+    if fruit != 'apple':
+        raise ValueError('maturityCounts currently supports apple only.')
+    if variant:
+        raise ValueError('Do not set fruitVariantId together with maturityCounts.')
+    if not isinstance(counts, dict) or set(counts) != {'unripe', 'turning', 'ripe'}:
+        raise ValueError('maturityCounts must contain exactly unripe, turning and ripe.')
+    for stage, count in counts.items():
+        require_type('maturityCounts.' + stage, count, int)
+        if count < 0:
+            raise ValueError('Maturity counts must be non-negative.')
+    if sum(counts.values()) != fruit_count:
+        raise ValueError('maturityCounts must sum to fruitCount.')
 
 
 def load_build_config(path):
@@ -69,4 +86,6 @@ def load_build_config(path):
             require_type(key, data[key], str, nullable=True)
     if 'noGround' in data:
         require_type('noGround', data['noGround'], bool)
+    validate_maturity_counts(data.get('maturityCounts'), data.get('fruitCount', 80),
+                             data.get('fruit', 'apple'), data.get('fruitVariantId'))
     return data
