@@ -1,6 +1,6 @@
 # FruitTreesBuild
 
-单株苹果树、橙子树素材构建项目。使用项目自带的 Windows Blender 5.2，支持现有 Windows Python 3.9+ 或 WSL specdec 启动，不需要在解释器中安装 bpy。
+单株苹果树、橙子树素材构建项目。复用本机 Windows Blender 5.2.x 和 PowerShell 7，支持现有 Windows Python 3.9+ 或 WSL 启动，不需要在解释器中安装 bpy。
 
 ## 日常只运行三个脚本
 
@@ -12,6 +12,11 @@
 
 在 PyCharm 中选择对应运行配置，或右键对应脚本运行。Parameters 参数栏保持空，工作目录选项目根目录。
 配置保存后再运行，无需修改 Python 源码。三个入口与输出目录没有改变。
+
+共享配置的 `blenderPath` 保持 `null`，启动时自动检查本机 PATH、Windows 安装记录、常见目录及可选 `.runtime`。
+未找到时，在 `.runtime/local.json` 填 `{"blenderPath":"D:/Blender/blender.exe"}`，不必复制安装程序，也不提交个人路径。
+也可用环境变量 `FRUITTREES_BLENDER` 或入口参数 `--blender`；具体优先级、版本要求见[环境准备](../README.md#环境准备)。
+显式路径错误会直接报错。内部 `scripts/build_tree.ps1` 若单独调用，需提供 `-BlenderPath`；日常仍运行上表三个 Python 入口。
 
 ### 1. 构建素材
 
@@ -107,7 +112,7 @@ checkAttachments=true 可额外检查果柄连接，但不能证明整棵树完�
 | scripts/ | 内部启动、建树、材质/果柄处理、素材导出和校验；不需要逐个运行 |
 | assets/、bark_texture/、leaf_texture/ | 叶果基础模型、连接标定与贴图，不能删除 |
 | vendor/ | 两种建树算法与参数来源；部分文件以 AST 读取，不能因名字旧而删除 |
-| .runtime/ | 配套 Blender、PowerShell 和隔离运行设置 |
+| .runtime/ | 本机路径覆盖、隔离运行设置和可选便携程序；不随仓库提供 |
 | .run/ | 三个 PyCharm 运行配置 |
 | generated/ | 素材输出及连续编号状态 |
 | docs/ | 素材字段说明、来源/授权说明和精简项目清单 |

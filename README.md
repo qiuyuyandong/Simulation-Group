@@ -29,14 +29,16 @@
 
 Blender 使用自己的 Python 环境，不需要给外部 Python 安装 `bpy`。克隆仓库不会自动获得 Blender 和 PowerShell；`.runtime/` 属于本地运行环境，不随 Git 提交。
 
-默认的本地文件位置如下，路径均相对于 `FruitTreesBuild/`：
+三份共享配置的 `blenderPath` 默认是 `null`，三个 Python 入口共用本机探测：PATH、Windows 安装记录、常见安装目录，最后检查可选的 `.runtime/blender*/blender.exe`。找到后检查 Blender 5.2.x，并显示路径、版本和来源。WSL 使用 Windows Blender，不支持用 Linux Blender 替代。
 
-| 文件 | 默认位置 |
-| --- | --- |
-| Blender 可执行文件 | `.runtime/blender-5.2-windows64/blender.exe` |
-| PowerShell 可执行文件 | `.runtime/powershell/pwsh.exe` |
+自定义安装位置可在 `FruitTreesBuild/.runtime/local.json` 写入：
+```json
+{"blenderPath": "D:/Blender/blender.exe"}
+```
+这里只是本机配置，不需要复制 Blender；该文件已被 Git 忽略。路径相对于 `FruitTreesBuild/`，也支持绝对路径，建议使用 `/`。
+优先级为 `--blender` → 环境变量 `FRUITTREES_BLENDER` → 本机配置 → 共享配置的非空 `blenderPath` → 自动探测。明确指定的路径不存在或版本不符会报错，不会改用另一个程序；本机配置损坏也会报错。团队共享配置保持 `null`。
 
-也可以使用已安装的程序：在相应工作配置中填写实际的 `blenderPath`，并确保启动器能找到 `pwsh.exe`。JSON 中的 Windows 路径建议使用 `/`，例如 `D:/Blender/blender.exe`；不要把个人电脑上的绝对路径作为团队默认配置提交。
+PowerShell 沿用已有查找逻辑：可选 `.runtime/powershell/pwsh.exe`、PATH 和已有备用位置。无需每个项目再安装一套；PyCharm 应能访问 `pwsh.exe`。`.runtime/user/` 只保存项目隔离设置，和可选程序、本机配置都不随 Git 提交。自动探测不安装软件、不缓存、不扫描整盘。
 
 ## 建树与素材交付
 

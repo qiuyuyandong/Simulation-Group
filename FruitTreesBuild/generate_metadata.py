@@ -15,14 +15,14 @@ import sys
 import tempfile
 import uuid
 
-from scripts.tree_launcher import ROOT, local_path, windows_path, host_kind
+from scripts.tree_launcher import ROOT, local_path, windows_path, host_kind, resolve_blender
 from scripts.launcher_config import load_config, require_type
 
 DEFAULT_CONFIG = ROOT / 'configs/export_metadata.json'
 CONFIG_FIELDS = {'assetDir': 'asset_dir', 'blenderPath': 'blender', 'threads': 'threads',
                  'reviewer': 'reviewer', 'reviewNote': 'review_note', 'reviewMode': 'review_mode',
                  'checkAttachments': 'check_attachments', 'verifyOnly': 'verify_only', 'dryRun': 'dry_run'}
-DEFAULTS = {'asset_dir': '', 'blender': '.runtime/blender-5.2-windows64/blender.exe',
+DEFAULTS = {'asset_dir': '', 'blender': None,
             'threads': 4, 'reviewer': None, 'review_note': '', 'review_mode': 'declared',
             'check_attachments': False, 'verify_only': False, 'dry_run': False}
 
@@ -66,9 +66,11 @@ def parser():
 def resolve_options(args):
     config = local_path(args.config)
     settings = load_config(config, CONFIG_FIELDS)
-    for key in ('assetDir', 'blenderPath', 'reviewNote'):
+    for key in ('assetDir', 'reviewNote'):
         if key in settings:
             require_type(key, settings[key], str)
+    if 'blenderPath' in settings:
+        require_type('blenderPath', settings['blenderPath'], str, nullable=True)
     if 'reviewer' in settings:
         require_type('reviewer', settings['reviewer'], str, nullable=True)
     if 'threads' in settings:
@@ -83,11 +85,9 @@ def resolve_options(args):
     values.update({field: getattr(args, field) for field in DEFAULTS if getattr(args, field) is not None})
     if not values['asset_dir'].strip():
         raise ValueError('Set assetDir in ' + str(config) + ' to the reviewed asset folder, e.g. generated/apple_tree_007. No file was modified.')
-    if not values['blender'].strip():
-        raise ValueError('blenderPath must name the Blender executable.')
     if values['threads'] < 1:
         raise ValueError('threads must be positive.')
-    return argparse.Namespace(config=str(config), **values)
+    return argparse.Namespace(config=str(config), blender_override=args.blender, **values)
 
 
 def blender_environment():
@@ -170,14 +170,14 @@ def generate(args):
     directory = local_path(args.asset_dir)
     if ROOT not in directory.parents:
         raise ValueError('Choose an asset directory inside this project, not the project root.')
-    model, executable = directory / 'asset.blend', local_path(args.blender)
-    for path in (model, executable):
-        if not path.is_file():
-            raise FileNotFoundError(str(path))
+    model = directory / 'asset.blend'
+    if not model.is_file():
+        raise FileNotFoundError(str(model))
+    executable = resolve_blender(args.blender, args.blender_override)
     if args.threads < 1:
         raise ValueError('threads must be positive.')
     if args.dry_run:
-        print(json.dumps({'host': host_kind(), 'configuration': args.config, 'asset': str(model),
+        print(json.dumps({'host': host_kind(), 'configuration': args.config, 'asset': str(model), 'blender': str(executable),
                           'operation': 'read-only verify' if args.verify_only else 'read saved model / export sidecars / fresh-process verify',
                           'output': str(directory / 'asset_metadata.json'), 'model_will_be_modified': False,
                           'allocates_new_asset_number': False, 'review_mode': args.review_mode}, ensure_ascii=False, indent=2))
