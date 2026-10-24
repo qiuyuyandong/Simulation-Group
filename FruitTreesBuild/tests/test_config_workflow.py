@@ -19,6 +19,9 @@ import generate_orange_tree
 
 class ConfigWorkflowTests(unittest.TestCase):
     def setUp(self):
+        discovery = patch.object(tree_launcher, 'resolve_blender', return_value=ROOT / 'test_blender.exe')
+        self.discovery = discovery.start()
+        self.addCleanup(discovery.stop)
         self.temporary = tempfile.TemporaryDirectory(prefix='_config_test_', dir=str(ROOT))
         self.directory = Path(self.temporary.name)
         self.config = self.directory / 'settings.json'
@@ -154,7 +157,23 @@ class ConfigWorkflowTests(unittest.TestCase):
 
     def test_tree_launcher_only_exposes_configuration_and_diagnostics(self):
         fields = {action.dest for action in tree_launcher.parser()._actions}
-        self.assertEqual(fields, {'help', 'config', 'dry_run'})
+        self.assertEqual(fields, {'help', 'config', 'blender', 'dry_run'})
+
+    def test_tree_launcher_passes_resolved_blender_with_cli_precedence(self):
+        args = tree_launcher.parser().parse_args(['--config', self.write_config({'blenderPath': 'configured.exe'}),
+                                                  '--blender', 'explicit.exe'])
+        with patch.object(tree_launcher, 'powershell_path', return_value=Path('pwsh.exe')):
+            command = tree_launcher.build_command(args, expected_fruit='apple')
+        self.discovery.assert_called_once_with('configured.exe', 'explicit.exe')
+        self.assertEqual(command[command.index('-BlenderPath') + 1], tree_launcher.windows_path(ROOT / 'test_blender.exe'))
+
+    def test_metadata_null_path_and_cli_source_are_preserved(self):
+        args = self.metadata_options({'assetDir': 'generated/apple_tree_007', 'blenderPath': None})
+        self.assertIsNone(args.blender)
+        self.assertIsNone(args.blender_override)
+        args = self.metadata_options({'assetDir': 'generated/apple_tree_007', 'blenderPath': 'configured.exe'},
+                                     ['--blender', 'explicit.exe'])
+        self.assertEqual(args.blender_override, 'explicit.exe')
 
     def test_missing_tree_config_is_rejected(self):
         args = tree_launcher.parser().parse_args(['--config', str(self.directory / 'missing.json')])

@@ -5,7 +5,7 @@
   "seed": 101,
   "frames": 0,
   "backend": "modern",
-  "blenderPath": ".runtime/blender-5.2-windows64/blender.exe",
+  "blenderPath": null,
   "resolution": 512,
   "samples": 32,
   "threads": 4,

@@ -1,6 +1,6 @@
 # FruitTreesBuild
 
-单株苹果树、橙子树素材构建项目。使用项目自带的 Windows Blender 5.2，支持现有 Windows Python 3.9+ 或 WSL specdec 启动，不需要在解释器中安装 bpy。
+单株苹果树、橙子树素材构建项目。复用本机 Windows Blender 5.2.x 和 PowerShell 7，支持现有 Windows Python 3.9+ 或 WSL 启动，不需要在解释器中安装 bpy。
 
 ## 日常只运行三个脚本
 
@@ -12,6 +12,11 @@
 
 在 PyCharm 中选择对应运行配置，或右键对应脚本运行。Parameters 参数栏保持空，工作目录选项目根目录。
 配置保存后再运行，无需修改 Python 源码。三个入口与输出目录没有改变。
+
+共享配置的 `blenderPath` 保持 `null`，启动时自动检查本机 PATH、Windows 安装记录、常见目录及可选 `.runtime`。
+未找到时，在 `.runtime/local.json` 填 `{"blenderPath":"D:/Blender/blender.exe"}`，不必复制安装程序，也不提交个人路径。
+也可用环境变量 `FRUITTREES_BLENDER` 或入口参数 `--blender`；具体优先级、版本要求见[环境准备](../README.md#环境准备)。
+显式路径错误会直接报错。内部 `scripts/build_tree.ps1` 若单独调用，需提供 `-BlenderPath`；日常仍运行上表三个 Python 入口。
 
 ### 1. 构建素材
 
@@ -42,6 +47,21 @@ leafFruitClearance 默认 0.006 m，对实际果实几何的保守包络增加�
 运行对应脚本后，查看控制台输出目录：generated/apple_tree_001、apple_tree_002……；橙子独立按 orange_tree_001 递增。
 不会覆盖旧目录，也不回填失败的编号。不要删除 generated/.asset-numbering.json。
 此步骤生成可编辑的 asset.blend，不生成素材级 asset_metadata.json。
+
+### 苹果成熟度
+
+`configs/apple_tree.json` 的 `maturityCounts` 指定逐果数量，例如：
+```json
+"maturityCounts": {"unripe": 20, "turning": 20, "ripe": 40}
+```
+三项必须是非负整数，合计等于 `fruitCount`（例中为 80）；修改果数时同步调整。
+未熟使用柔和黄绿色，转熟改为黄绿果身配果底渐起的柔和红晕（红晕约占下方四成，最深处约两成），并用细碎条纹打散边界；成熟保留略压暗的红色纹理。
+尺寸系数为 0.8、0.9、1.0，仍带原有 0.9–1.1 随机变化。
+阶段按 seed 可复现地打乱，尺寸在连接与避让计算前应用；共用原网格和贴图，只按对象替换果皮材质。
+`maturityCounts` 优先于 `maturityStage`，此时 `fruitVariantId` 必须为空，逐果自动写入 `apple_<stage>_v1`。
+省略或设为 null 时沿用 `maturityStage` 单阶段方式；苹果的 unknown 保留原外观，橙子仍仅记录标签。
+这些是视觉预设，未经品种或成熟度实测标定。人工编辑果实外观时也应同步调整其成熟度和变体属性。
+最终 `asset_metadata.json` 使用保存模型的 `fruits[].maturity_stage` 和 `parts_summary.fruit_count`，不照抄配置数量。
 
 ### 连续尝试种子
 
@@ -93,7 +113,7 @@ checkAttachments=true 可额外检查果柄连接，但不能证明整棵树完�
 | scripts/ | 内部启动、建树、材质/果柄处理、素材导出和校验；不需要逐个运行 |
 | assets/、bark_texture/、leaf_texture/ | 叶果基础模型、连接标定与贴图，不能删除 |
 | vendor/ | 两种建树算法与参数来源；部分文件以 AST 读取，不能因名字旧而删除 |
-| .runtime/ | 配套 Blender、PowerShell 和隔离运行设置 |
+| .runtime/ | 本机路径覆盖、隔离运行设置和可选便携程序；不随仓库提供 |
 | .run/ | 三个 PyCharm 运行配置 |
 | generated/ | 素材输出及连续编号状态 |
 | docs/ | 素材字段说明、来源/授权说明和精简项目清单 |
@@ -108,7 +128,7 @@ frames=0 时不额外渲染图像；frames>0 的 images/ 仅为预览，不是�
 
 - 元数据保留实际外观包围盒、部件数量和逐果位置，不输出逐叶记录；精细形状由模型保存，包围盒不是精细碰撞体。
 - 不生成碰撞代理，也不构建果园、导航或智能体训练流程。
-- maturityStage / fruitVariantId 只是果实标签，不自动生成对应成熟度外观；当前不考虑整树生育阶段。
+- 苹果成熟度同时控制果皮和尺寸；橙子仍仅记录 maturityStage / fruitVariantId 标签，不考虑整树生育阶段。
 - 物种、品种、尺寸和成熟度没有完成实测标定；人工审核记录不是自动无穿模证明。
 - 旧素材的读取/重新提取所需兼容校验仍是内部依赖，保留；旧碰撞数据不会被当成本版已验证功能。
 - 资产与字段含义见 docs/asset_metadata.md；第三方素材来源及授权状态见 docs/THIRD_PARTY_NOTICES.md。
@@ -121,3 +141,7 @@ python -B -m unittest discover -s tests -v
 ```
 
 测试用于检查配置、编号、模型/描述一致性等，不替代人工外观审核。最新结果保存为 tests/validation_latest.json。
+
+混合成熟度回归：先生成包含三级果实的小样，以 `reviewMode=automated_test` 导出 metadata，
+再用 Blender 后台加载该 `asset.blend` 并执行 `tests/apple_maturity_blender_checks.py`。
+它检查实际数量、逐果标签、共享网格、独立果皮材质、尺寸、果柄连接和编辑后的 metadata 统计；不保存测试中的编辑。

@@ -307,6 +307,10 @@ def populate_crown(points, parent, radii, args, wood_segments=None):
                             for index in polygon.vertices})
     if not body_vertices:
         raise RuntimeError('Fruit body has no vertices for collision checks.')
+    from fruit_maturity import APPLE_STAGES, maturity_stages, apple_materials
+    stages = maturity_stages(args.maturity_counts, args.fruit_count, args.maturity_stage, args.seed)
+    materials = apple_materials(fruit_mesh.materials[body_materials[0]], stages) if args.fruit == 'apple' else {}
+    size_factors = [APPLE_STAGES[stage][0] if stage in materials else 1.0 for stage in stages]
     alignment = landmarks['fruit_up_axis'].rotation_difference(Vector((0, 0, 1)))
     if args.generator == 'space' and wood_segments:
         from apple_wood import segment_sampler
@@ -329,12 +333,14 @@ def populate_crown(points, parent, radii, args, wood_segments=None):
     stem_material.pass_index = 3
     stems.materials.append(stem_material)
     for index in range(args.fruit_count):
+        stage = stages[index]
+        size_factor = size_factors[index]
         for attempt in range(2000):
             branch = sample_fruit(rng, with_branch=True)
             tilt = Euler((rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12),
                           rng.uniform(0, 2 * math.pi)))
             rotation = transform(tilt.to_matrix(), alignment.to_matrix()).to_euler('XYZ')
-            scale = rng.uniform(0.9, 1.1)
+            scale = rng.uniform(0.9, 1.1) * size_factor
             placement = place_at_branch(branch, rotation, scale, landmarks, wood)
             if placement is None:
                 continue
@@ -365,6 +371,15 @@ def populate_crown(points, parent, radii, args, wood_segments=None):
         obj = add_instance('Fruit_{:04d}'.format(index + 1), fruit_mesh, location,
                            rotation, 'fruit', group)
         obj.scale = (scale, scale, scale)
+        obj['maturity_stage'] = stage
+        obj['fruit_variant_id'] = args.fruit_variant_id
+        if stage in materials:
+            # Object slots preserve the shared mesh and its attachment calibration.
+            slot = obj.material_slots[body_materials[0]]
+            slot.link = 'OBJECT'
+            slot.material = materials[stage]
+            if args.maturity_counts is not None or args.fruit_variant_id == 'apple_base_v1':
+                obj['fruit_variant_id'] = 'apple_' + stage + '_v1'
         fruits.append(obj)
         if args.generator == 'space':
             fruit_centers.append(body_center)
@@ -454,7 +469,8 @@ def populate_crown(points, parent, radii, args, wood_segments=None):
                                      if args.generator == 'space' else {'method': 'target diameter spacing'}),
             'leaf_placement_stats': placement_stats,
             'leaf_base_minimum_spacing_m': args.leaf_length * .33 if args.generator == 'sapling' else args.leaf_spacing,
-            'leaf_length_scale_range': [0.8, 1.15], 'fruit_diameter_scale_range': [0.9, 1.1]}
+            'leaf_length_scale_range': [0.8, 1.15],
+            'fruit_diameter_scale_range': [0.9 * min(size_factors or [1.0]), 1.1 * max(size_factors or [1.0])]}
 
 
 def add_ground():

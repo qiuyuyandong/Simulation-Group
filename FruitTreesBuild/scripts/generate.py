@@ -15,6 +15,7 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
 from blender_compat import update_scene
+from launcher_config import validate_maturity_counts
 
 
 def setup_output(args, output):
@@ -87,6 +88,7 @@ def main():
     parser.add_argument('--fruit', choices=('apple', 'orange'), default='apple')
     parser.add_argument('--maturity-stage', choices=('unknown', 'unripe', 'turning', 'ripe'), default='unknown')
     parser.add_argument('--fruit-variant-id')
+    parser.add_argument('--maturity-counts', type=json.loads)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--frames', type=int, default=0)
     parser.add_argument('--resolution', type=int, default=512)
@@ -108,6 +110,7 @@ def main():
     parser.add_argument('--no-ground', action='store_true')
     parser.add_argument('--output', required=True)
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
+    validate_maturity_counts(args.maturity_counts, args.fruit_count, args.fruit, args.fruit_variant_id)
     if args.profile == 'auto':
         args.profile = 'orchard'
     if not args.fruit_variant_id:
@@ -199,6 +202,7 @@ def main():
         'run_status': 'pending_candidate_save',
         'asset_stage': 'awaiting_manual_review',
         'maturity_stage': args.maturity_stage,
+        'maturity_counts': args.maturity_counts,
         'fruit_variant_id': args.fruit_variant_id,
         'generation_record': generation_record,
         'units': 'metres (design targets, not empirical calibration)' if structure else 'uncalibrated Blender units',
@@ -210,7 +214,7 @@ def main():
             'Optional RGB previews are not a complete annotated training dataset.',
             'Third-party assets require a separate license review before redistribution.',
             'Review and save asset.blend, then run generate_metadata.py for current asset-level metadata.',
-            'Maturity/variant labels do not automatically change the bundled fruit appearance.',
+            'Apple maturity uses uncalibrated hue/size presets; orange labels do not change appearance.',
         ],
     }
     write_json(output / 'metadata.json', metadata)

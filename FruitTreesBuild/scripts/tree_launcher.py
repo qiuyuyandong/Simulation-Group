@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-from scripts.launcher_config import load_build_config
+from scripts.launcher_config import load_build_config, load_config, require_type
 
 DEFAULT_CONFIG = ROOT / "configs" / "apple_tree.json"
 
@@ -78,9 +78,98 @@ def powershell_path(explicit=None):
     raise FileNotFoundError("Windows PowerShell 7 not found. Restore .runtime/powershell or install PowerShell 7.")
 
 
+def blender_candidates(report):
+    discovered = shutil.which('blender.exe')
+    if discovered:
+        yield 'PATH', discovered
+    # Query Windows through the existing shell, including when launched from WSL.
+    query = r'''
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$keys = @('HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+          'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+          'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*')
+Get-ItemProperty -Path $keys -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -like 'Blender*' -and $_.InstallLocation } |
+    ForEach-Object { "registry`t" + (Join-Path $_.InstallLocation 'blender.exe') }
+$apps = @('HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe',
+          'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe')
+Get-ItemProperty -Path $apps -ErrorAction SilentlyContinue |
+    ForEach-Object { if ($_.'(default)') { "registry`t" + $_.'(default)' } }
+$folders = @("$env:ProgramFiles\Blender Foundation\Blender*\blender.exe",
+             "$env:LOCALAPPDATA\Programs\Blender Foundation\Blender*\blender.exe")
+Get-Item -Path $folders -ErrorAction SilentlyContinue | Sort-Object FullName |
+    ForEach-Object { "standard directory`t" + $_.FullName }
+exit 0
+'''
+    try:
+        result = subprocess.run([str(powershell_path()), '-NoLogo', '-NoProfile', '-NonInteractive',
+                                 '-Command', query], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                encoding='utf-8', errors='replace', timeout=5)
+        for line in result.stdout.splitlines():
+            source, separator, value = line.partition('\t')
+            if separator and value.strip():
+                yield source, value.strip()
+        if result.returncode:
+            report.append('Windows installation lookup: ' + result.stderr.strip())
+    except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        report.append('Windows installation lookup: ' + str(exc))
+    for candidate in sorted((ROOT / '.runtime').glob('blender*/blender.exe')):
+        yield '.runtime', candidate
+
+
+def resolve_blender(configured=None, explicit=None):
+    host_kind()
+    source, value = 'command line', explicit
+    if not value:
+        source, value = 'FRUITTREES_BLENDER', os.environ.get('FRUITTREES_BLENDER')
+    if not value:
+        local = ROOT / '.runtime/local.json'
+        try:
+            settings = load_config(local, {'blenderPath'}) if local.is_file() else {}
+            value = settings.get('blenderPath')
+            require_type('blenderPath', value, str, nullable=True)
+        except (OSError, ValueError) as exc:
+            raise ValueError('Invalid local Blender configuration {}: {}'.format(local, exc)) from exc
+        source = str(local)
+    if not value:
+        source, value = 'configuration blenderPath', configured
+    report, seen = [], set()
+    strict = bool(value)
+    candidates = [(source, value)] if strict else blender_candidates(report)
+    for source, value in candidates:
+        path = local_path(value)
+        key = str(path).casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            if not path.is_file():
+                raise ValueError('file does not exist')
+            if path.suffix.lower() != '.exe':
+                raise ValueError('expected a Windows Blender .exe, including under WSL')
+            result = subprocess.run([str(path), '--version'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8', errors='replace', timeout=5)
+            version = re.search(r'^Blender\s+(\d+)\.(\d+)\.(\d+)\b', result.stdout, re.MULTILINE)
+            if result.returncode or not version:
+                raise ValueError('version check failed: ' + (result.stderr.strip() or result.stdout.strip()))
+            if version.group(1, 2) != ('5', '2'):
+                raise ValueError('requires Blender 5.2.x; found ' + version.group(0))
+        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+            report.append('{}: {} ({})'.format(source, path, exc))
+            if strict:
+                break
+        else:
+            print('Blender: {} / {} / {}'.format(path, version.group(0), source), flush=True)
+            return path
+    raise RuntimeError('Cannot find compatible Blender 5.2.x.\n' + '\n'.join(report) +
+                       '\nSet FRUITTREES_BLENDER, .runtime/local.json {"blenderPath":".../blender.exe"}'
+                       ' or --blender. Automatic lookup checks PATH, Windows installs and optional .runtime.')
+
+
 def parser(default_config=None):
     result = argparse.ArgumentParser(description="Build from the selected JSON configuration using Windows Blender.")
     result.add_argument("--config", default=str(default_config or DEFAULT_CONFIG))
+    result.add_argument('--blender', help='Explicit Blender executable; otherwise discover the local installation.')
     result.add_argument("--dry-run", action="store_true", help="Diagnostic only: show the command without creating files.")
     return result
 
@@ -106,7 +195,8 @@ def build_command(args, expected_fruit=None):
     trunk = settings.get('trunkHeight', .6)
     if trunk >= height * .65:
         raise ValueError('trunkHeight must be less than 65% of treeHeight.')
-    command.extend(["-Config", windows_path(config), "-Fruit", fruit])
+    blender = resolve_blender(settings.get('blenderPath'), args.blender)
+    command.extend(["-Config", windows_path(config), "-Fruit", fruit, '-BlenderPath', windows_path(blender)])
     return command
 
 

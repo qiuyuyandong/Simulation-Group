@@ -3,6 +3,7 @@ param(
     [ValidateSet('apple', 'orange')][string]$Fruit = 'apple',
     [ValidateSet('unknown', 'unripe', 'turning', 'ripe')][string]$MaturityStage = 'unknown',
     [string]$FruitVariantId,
+    [object]$MaturityCounts,
     [ValidateRange(0, 2147483647)][int]$Seed = 42,
     [ValidateRange(0, 5000)][int]$Frames = 0,
     [ValidateSet('modern')][string]$Backend = 'modern',
@@ -36,7 +37,7 @@ if ($Config) {
     $supported = @('generator', 'fruit', 'seed', 'frames', 'resolution', 'samples', 'threads',
         'profile', 'treeHeight', 'trunkHeight', 'trunkDiameter', 'leafCount', 'fruitCount',
         'leafLength', 'fruitDiameter', 'crownWidth', 'leafFruitClearance', 'branchUplift',
-        'branchAngleMin', 'heightTaper', 'leafSpacing', 'noGround', 'backend', 'blenderPath', 'maturityStage', 'fruitVariantId')
+        'branchAngleMin', 'heightTaper', 'leafSpacing', 'noGround', 'backend', 'blenderPath', 'maturityStage', 'fruitVariantId', 'maturityCounts')
     foreach ($property in $settings.PSObject.Properties) {
         if ($property.Name -notin $supported) { throw "Unknown setting: $($property.Name)" }
         if ($property.Name -eq 'blenderPath' -and $PSBoundParameters.ContainsKey('Backend') -and
@@ -95,6 +96,9 @@ try {
     }
     $shapeArguments += @('--maturity-stage', $MaturityStage)
     if ($FruitVariantId) { $shapeArguments += @('--fruit-variant-id', $FruitVariantId) }
+    if ($null -ne $MaturityCounts) {
+        $shapeArguments += @('--maturity-counts', ($MaturityCounts | ConvertTo-Json -Compress))
+    }
     & $blenderExecutable --background --factory-startup --disable-autoexec --python-exit-code 1 `
         --threads $Threads --python (Join-Path $projectRoot 'scripts\generate.py') -- `
         --generator $Generator --fruit $Fruit --seed $Seed --frames $Frames `
