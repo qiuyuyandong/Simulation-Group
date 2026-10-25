@@ -23,22 +23,22 @@ function New-FruitAssetDirectory {
         }
     }
     try {
-        $state = @{schema_version = '1.0.0'; last_allocated = @{apple = 0L; orange = 0L}}
+        $state = [pscustomobject]@{schema_version = '1.0.0'; last_allocated = [pscustomobject]@{apple = 0L; orange = 0L}}
         if (Test-Path -LiteralPath $statePath) {
             $state = Get-Content -LiteralPath $statePath -Raw -Encoding UTF8 |
-                ConvertFrom-Json -AsHashtable -ErrorAction Stop
-            if ($state.schema_version -ne '1.0.0' -or $state.last_allocated -isnot [Collections.IDictionary]) {
+                ConvertFrom-Json -ErrorAction Stop
+            if ($state.schema_version -ne '1.0.0' -or $state.last_allocated -isnot [pscustomobject]) {
                 throw 'Invalid numbering state. Restore .asset-numbering.json; do not reset it to overwrite assets.'
             }
             foreach ($kind in @('apple', 'orange')) {
                 $parsed = 0L
-                if (-not [long]::TryParse([string]$state.last_allocated[$kind], [ref]$parsed) -or $parsed -lt 0) {
+                if (-not [long]::TryParse([string]$state.last_allocated.$kind, [ref]$parsed) -or $parsed -lt 0) {
                     throw "Invalid numbering state for $kind."
                 }
-                $state.last_allocated[$kind] = $parsed
+                $state.last_allocated.$kind = $parsed
             }
         }
-        $highest = [long]$state.last_allocated[$Fruit]
+        $highest = [long]$state.last_allocated.$Fruit
         # Include files and incomplete directories too: their names are reserved.
         foreach ($entry in Get-ChildItem -LiteralPath $OutputRoot -Force) {
             if ($entry.Name -match ('^' + $Fruit + '_tree_(\d+)$')) {
@@ -53,10 +53,15 @@ function New-FruitAssetDirectory {
         $directory = Join-Path $OutputRoot $name
         if (Test-Path -LiteralPath $directory) { throw "Refusing to reuse existing output: $directory" }
         [IO.Directory]::CreateDirectory($directory) | Out-Null
-        $state.last_allocated[$Fruit] = $next
+        $state.last_allocated.$Fruit = $next
         $temporaryState = $statePath + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
         [IO.File]::WriteAllText($temporaryState, ($state | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
-        [IO.File]::Move($temporaryState, $statePath, $true)
+        if (Test-Path -LiteralPath $statePath) {
+            # Windows PowerShell converts $null to an empty path for .NET string parameters.
+            [IO.File]::Replace($temporaryState, $statePath, [System.Management.Automation.Language.NullString]::Value)
+        } else {
+            [IO.File]::Move($temporaryState, $statePath)
+        }
         return [pscustomobject]@{Name = $name; Number = $next; FullName = $directory}
     } finally {
         $allocationLock.Dispose()

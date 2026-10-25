@@ -25,9 +25,9 @@
 | --- | --- |
 | Python | 3.9+，用于运行外部启动脚本 |
 | Blender | 当前建树代码检查 5.2.x；不要直接替换为其他版本 |
-| PowerShell | Windows PowerShell 7，即 `pwsh.exe` |
+| PowerShell | 自动发现本机可用程序，不固定版本；启动时验证能否执行 |
 
-Blender 使用自己的 Python 环境，不需要给外部 Python 安装 `bpy`。克隆仓库不会自动获得 Blender 和 PowerShell；`.runtime/` 属于本地运行环境，不随 Git 提交。
+Blender 使用自己的 Python 环境，不需要给外部 Python 安装 `bpy`。克隆仓库不会自动获得 Blender；PowerShell 复用 Windows 自带或本机已有安装。`.runtime/` 属于本地运行环境，不随 Git 提交。
 
 三份共享配置的 `blenderPath` 默认是 `null`，三个 Python 入口共用本机探测：PATH、Windows 安装记录、常见安装目录，最后检查可选的 `.runtime/blender*/blender.exe`。找到后检查 Blender 5.2.x，并显示路径、版本和来源。WSL 使用 Windows Blender，不支持用 Linux Blender 替代。
 
@@ -38,7 +38,7 @@ Blender 使用自己的 Python 环境，不需要给外部 Python 安装 `bpy`�
 这里只是本机配置，不需要复制 Blender；该文件已被 Git 忽略。路径相对于 `FruitTreesBuild/`，也支持绝对路径，建议使用 `/`。
 优先级为 `--blender` → 环境变量 `FRUITTREES_BLENDER` → 本机配置 → 共享配置的非空 `blenderPath` → 自动探测。明确指定的路径不存在或版本不符会报错，不会改用另一个程序；本机配置损坏也会报错。团队共享配置保持 `null`。
 
-PowerShell 沿用已有查找逻辑：可选 `.runtime/powershell/pwsh.exe`、PATH 和已有备用位置。无需每个项目再安装一套；PyCharm 应能访问 `pwsh.exe`。`.runtime/user/` 只保存项目隔离设置，和可选程序、本机配置都不随 Git 提交。自动探测不安装软件、不缓存、不扫描整盘。
+PowerShell 按顺序检查可选 `.runtime/powershell/pwsh.exe`、PATH 中的 `pwsh.exe`、PATH 中的 `powershell.exe`、Windows 自带 PowerShell，再检查常见 PowerShell 安装目录和已有备用位置。每个候选都执行 `$PSVersionTable.PSVersion.ToString()`，启动失败、超时或版本输出无效时继续检查；版本输出仅用于确认程序可运行，不比较版本号。已在 Windows PowerShell 5.1 和 PowerShell 7.6.5 下验证输出目录分配脚本，这些是测试记录，不是版本白名单。无需每个项目再安装一套。`.runtime/user/` 只保存项目隔离设置，和可选程序、本机配置都不随 Git 提交。自动探测不安装软件、不缓存、不扫描整盘。
 
 ## 建树与素材交付
 
