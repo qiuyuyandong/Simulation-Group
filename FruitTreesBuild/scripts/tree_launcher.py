@@ -55,27 +55,44 @@ def windows_path(path):
 
 def powershell_path(explicit=None):
     if explicit:
-        candidate = local_path(explicit)
-        if not candidate.is_file():
-            raise FileNotFoundError("PowerShell executable not found: " + str(candidate))
-        return candidate
-    bundled = ROOT / '.runtime' / 'powershell' / 'pwsh.exe'
-    if bundled.is_file():
-        return bundled
-    discovered = shutil.which("pwsh.exe")
-    if discovered:
-        return Path(discovered)
-    if host_kind() == "windows":
-        candidates = [Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
-                      Path("C:/Program Files/PowerShell/7/pwsh.exe")]
+        candidates = [local_path(explicit)]
     else:
-        # Fallback installation locations; the bundled runtime takes priority.
-        candidates = [Path("/mnt/c/Users/j/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe"),
-                      Path("/mnt/c/Program Files/PowerShell/7/pwsh.exe")]
+        candidates = [ROOT / '.runtime/powershell/pwsh.exe']
+        for name in ('pwsh.exe', 'powershell.exe'):
+            discovered = shutil.which(name)
+            if discovered:
+                candidates.append(Path(discovered))
+        candidates.extend([
+            local_path(os.environ.get('SystemRoot', 'C:/Windows') + '/System32/WindowsPowerShell/v1.0/powershell.exe'),
+            local_path(os.environ.get('ProgramFiles', 'C:/Program Files') + '/PowerShell/7/pwsh.exe'),
+        ])
+        if host_kind() == 'windows':
+            candidates.append(Path.home() / '.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe')
+        else:
+            candidates.append(Path('/mnt/c/Users/j/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'))
+    report, seen = [], set()
     for candidate in candidates:
-        if candidate.is_file():
+        key = str(candidate).casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            if not candidate.is_file():
+                if explicit:
+                    raise FileNotFoundError('file does not exist')
+                continue
+            result = subprocess.run([str(candidate), '-NoLogo', '-NoProfile', '-NonInteractive',
+                                     '-Command', '$PSVersionTable.PSVersion.ToString()'],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    encoding='utf-8', errors='replace', timeout=5)
+            if result.returncode or not re.fullmatch(r'\d+\.\d+(?:\.\d+){0,2}(?:-[\w.-]+)?', result.stdout.strip()):
+                raise ValueError('version check failed: ' + (result.stderr.strip() or result.stdout.strip()))
+        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+            report.append('{}: {}'.format(candidate, exc))
+        else:
             return candidate
-    raise FileNotFoundError("Windows PowerShell 7 not found. Restore .runtime/powershell or install PowerShell 7.")
+    raise FileNotFoundError('No usable PowerShell executable found. Make PowerShell available on PATH or restore .runtime/powershell.' +
+                            ('\n' + '\n'.join(report) if report else ''))
 
 
 def blender_candidates(report):

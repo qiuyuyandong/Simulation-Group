@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -18,6 +19,10 @@ def quoted(value):
 
 
 class OutputDirectoryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.shell = launcher.powershell_path()
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='_numbering_test_', dir=str(ROOT))
         self.output = Path(self.temporary.name)
@@ -30,7 +35,7 @@ class OutputDirectoryTests(unittest.TestCase):
                    quoted(launcher.windows_path(ROOT / 'scripts/Output-Directories.ps1')) +
                    '; New-FruitAssetDirectory -OutputRoot ' + quoted(launcher.windows_path(self.output)) +
                    ' -Fruit ' + quoted(fruit) + ' | ConvertTo-Json -Compress')
-        result = subprocess.run([str(launcher.powershell_path()), '-NoLogo', '-NoProfile',
+        result = subprocess.run([str(self.shell), '-NoLogo', '-NoProfile',
                                  '-NonInteractive', '-Command', command],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 encoding='utf-8', errors='replace', timeout=45)
@@ -84,6 +89,40 @@ class OutputDirectoryTests(unittest.TestCase):
         (self.output / '.asset-numbering.json').write_text('{broken', encoding='utf-8')
         self.allocate(expect_error=True)
         self.assertFalse((self.output / 'apple_tree_001').exists())
+
+    def test_invalid_state_is_preserved_without_allocating(self):
+        states = [
+            {'schema_version': '2.0.0', 'last_allocated': {'apple': 0, 'orange': 0}},
+            {'schema_version': '1.0.0', 'last_allocated': []},
+            {'schema_version': '1.0.0', 'last_allocated': {'apple': 0}},
+            {'schema_version': '1.0.0', 'last_allocated': {'apple': -1, 'orange': 0}},
+            {'schema_version': '1.0.0', 'last_allocated': {'apple': 'bad', 'orange': 0}},
+        ]
+        path = self.output / '.asset-numbering.json'
+        for state in states:
+            with self.subTest(state=state):
+                text = json.dumps(state)
+                path.write_text(text, encoding='utf-8')
+                self.allocate(expect_error=True)
+                self.assertEqual(path.read_text(encoding='utf-8'), text)
+                self.assertFalse((self.output / 'apple_tree_001').exists())
+
+
+class WindowsPowerShell51OutputDirectoryTests(OutputDirectoryTests):
+    @classmethod
+    def setUpClass(cls):
+        path = launcher.local_path(os.environ.get('SystemRoot', 'C:/Windows') +
+                                   '/System32/WindowsPowerShell/v1.0/powershell.exe')
+        if not path.is_file():
+            raise unittest.SkipTest('Windows PowerShell 5.1 is not installed.')
+        cls.shell = launcher.powershell_path(str(path))
+
+    def test_shell_is_windows_powershell_51(self):
+        result = subprocess.run([str(self.shell), '-NoLogo', '-NoProfile', '-NonInteractive',
+                                 '-Command', '$PSVersionTable.PSVersion.ToString()'],
+                                capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertRegex(result.stdout.strip(), r'^5\.1\.')
 
 
 if __name__ == '__main__':

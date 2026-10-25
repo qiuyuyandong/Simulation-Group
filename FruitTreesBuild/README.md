@@ -1,6 +1,6 @@
 # FruitTreesBuild
 
-单株苹果树、橙子树素材构建项目。复用本机 Windows Blender 5.2.x 和 PowerShell 7，支持现有 Windows Python 3.9+ 或 WSL 启动，不需要在解释器中安装 bpy。
+单株苹果树、橙子树素材构建项目。复用本机 Windows Blender 5.2.x 和 PowerShell（自动发现本机可用程序，不固定版本），支持现有 Windows Python 3.9+ 或 WSL 启动，不需要在解释器中安装 bpy。
 
 ## 日常只运行三个脚本
 
